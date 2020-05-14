@@ -1,6 +1,8 @@
 var scene, camera, fov, ratio, near, far, renderer, container,
     width, height,
-    background, ground, cloudy;
+    background, ground, cloudy,
+    body, mesin, sayap, propeller, baling, ekor, Pesawat, 
+    mouse;
 
 var skyIndex = 0, skyIncrease = 1, skyTime = 0;
 var skyColor = [
@@ -40,6 +42,8 @@ function createScene(){
     renderer.shadowMap.enabled = true;
     container = document.getElementById('world');
     container.appendChild(renderer.domElement);
+
+    window.addEventListener('resize', resize, false);
 }
 
 // Buat Background
@@ -52,9 +56,65 @@ function createBackground(){
     scene.add(background);
 }
 
+// Buat pesawat 
+function pesawat(){
+    this.mesh = new THREE.Object3D();
+
+    // Body
+    var geometry = new THREE.BoxGeometry(65, 50, 50);
+    var material = new THREE.MeshBasicMaterial({color: 0x800000});
+    body = new THREE.Mesh(geometry, material);
+    body.position.x = 10;
+
+    // Mesin
+    var geomMesin = new THREE.BoxGeometry(25, 50, 50);
+    var matMesin = new THREE.MeshBasicMaterial({color: 0xd8d0d1});
+    mesin = new THREE.Mesh(geomMesin, matMesin);
+    mesin.position.x = 50;
+
+    // Sayap 
+    var geomSayap = new THREE.BoxGeometry(40, 8, 150);
+    var matSayap = new THREE.MeshBasicMaterial({color: 0xFF4500});
+    sayap = new THREE.Mesh(geomSayap, matSayap);
+    sayap.position.x = 5;
+
+    // Propeller
+    var geomPropeller = new THREE.BoxGeometry(15, 10, 1);
+    var matPropeller = new THREE.MeshBasicMaterial({color: 0xA0522D});
+    this.propeller = new THREE.Mesh(geomPropeller, matPropeller);
+    this.propeller.position.x = 65;
+
+    // baling-baling
+    var geomBaling = new THREE.BoxGeometry(1, 80, 20);
+    var matBaling = new THREE.MeshBasicMaterial({color: 0x624A2E});
+    baling = new THREE.Mesh(geomBaling, matBaling);
+    baling.position.x = 5;
+
+    // Ekor
+    var geomEkor = new THREE.BoxGeometry(20, 20, 5);
+    var matEkor = new THREE.MeshPhongMaterial({color: 0xA0522D});
+    ekor = new THREE.Mesh(geomEkor, matEkor);
+    ekor.position.x = -32;
+    ekor.position.y = 25;
+
+    this.propeller.add(baling);
+    
+    this.mesh.add(body);
+    this.mesh.add(mesin);
+    this.mesh.add(sayap);
+    this.mesh.add(this.propeller);
+    this.mesh.add(ekor);
+}
+
+function createPlane() {
+    Pesawat = new pesawat();
+    Pesawat.mesh.scale.set(.25, .25, .25);
+    scene.add(Pesawat.mesh);
+}
+
 // Buat Ground
 function createGround(){
-    var geometry = new THREE.CylinderGeometry(600,600,800,30,10);
+    var geometry = new THREE.CylinderGeometry(600, 600, 800, 30,10);
     geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
     var mat = new THREE.MeshBasicMaterial({
         color: 0xED8E4A,
@@ -72,6 +132,7 @@ function cloneCloud(){
     this.mesh = new THREE.Object3D();
     this.nClouds = 40; 
     this.clouds = [];
+
     // Buat angle awan
     var stepAngle = Math.PI*2 / this.nClouds;
     for(var i=0; i<this.nClouds; i++){
@@ -119,6 +180,7 @@ function createCloud(){
 
 // Animasi
 function loop(){
+    updatePlane();
     renderer.render(scene, camera);
     // Animate Sky
     if(skyTime < 120)
@@ -144,12 +206,46 @@ function loop(){
 }
 
 // Initialisasi grafik
-function init(){
+function init() {
+    document.addEventListener('mousemove', handleMouseMove, false);
     createScene();
     createBackground();
     createGround();
     createCloud();
+    createPlane();
     loop();
+}
+
+function updatePlane() {
+    var targetX = normalize(mouse.x,-.75,.75,-100, 100);
+    var targetY = normalize(mouse.y,-.75,.75,25, 175);
+    Pesawat.mesh.position.x = targetX;
+    Pesawat.mesh.position.y = targetY;
+    Pesawat.propeller.rotation.x += 0.3;
+}
+
+// Mengatur Kecepatan dan Tinggi Pesawat
+function normalize(v, vmin, vmax, tmin, tmax) {
+    var nv = Math.max(Math.min(v, vmax), vmin);
+    var dv = vmax-vmin;
+    var pc = (nv-vmin) / dv;
+    var dt = tmax-tmin;
+    var tv = tmin + (pc*dt);
+    return tv;
+}
+
+mouse = { x: 0, y: 0 };
+function handleMouseMove(event) {
+    var tx = -1 + (event.clientX / width) * 2;
+    var ty = 1 - (event.clientY / height) * 2;
+    mouse = {x:tx, y:ty};
+}
+
+// Resize window
+function resize() {
+    height = window.innerHeight;
+    width = window.innerWidth;
+    renderer.setSize(width, height);
 }
 
 window.addEventListener('load', init, false);

@@ -1,6 +1,7 @@
 var scene, camera, fov, ratio, near, far, renderer, container,
     width, height,
     background, ground, cloudy,
+    light1, light2,
     body, mesin, sayap, propeller, baling, ekor, Pesawat, 
     mouse;
 
@@ -49,7 +50,7 @@ function createScene(){
 // Buat Background
 function createBackground(){
     var geometry = new THREE.PlaneGeometry(2500, 1500);
-    var material = new THREE.MeshBasicMaterial({color: skyColor[skyIndex]});
+    var material = new THREE.MeshPhongMaterial({color: skyColor[skyIndex]});
     background = new THREE.Mesh(geometry, material);
     
     background.position.z = -600;
@@ -62,43 +63,50 @@ function pesawat(){
 
     // Body
     var geometry = new THREE.BoxGeometry(65, 50, 50);
-    var material = new THREE.MeshBasicMaterial({color: 0x800000});
+    var material = new THREE.MeshPhongMaterial({color: 0x800000, shading:THREE.FlatShading});
     body = new THREE.Mesh(geometry, material);
     body.position.x = 10;
 
     // Mesin
     var geomMesin = new THREE.BoxGeometry(25, 50, 50);
-    var matMesin = new THREE.MeshBasicMaterial({color: 0xd8d0d1});
+    var matMesin = new THREE.MeshPhongMaterial({color: 0xd8d0d1, shading:THREE.FlatShading});
     mesin = new THREE.Mesh(geomMesin, matMesin);
     mesin.position.x = 50;
 
     // Sayap 
     var geomSayap = new THREE.BoxGeometry(40, 8, 150);
-    var matSayap = new THREE.MeshBasicMaterial({color: 0xFF4500});
+    var matSayap = new THREE.MeshPhongMaterial({color: 0xFF4500, shading:THREE.FlatShading});
     sayap = new THREE.Mesh(geomSayap, matSayap);
     sayap.position.x = 5;
 
     // Propeller
     var geomPropeller = new THREE.BoxGeometry(15, 10, 1);
-    var matPropeller = new THREE.MeshBasicMaterial({color: 0xA0522D});
+    var matPropeller = new THREE.MeshPhongMaterial({color: 0xA0522D, shading:THREE.FlatShading});
     this.propeller = new THREE.Mesh(geomPropeller, matPropeller);
     this.propeller.position.x = 65;
 
-    // baling-baling
+    // Baling-baling
     var geomBaling = new THREE.BoxGeometry(1, 80, 20);
-    var matBaling = new THREE.MeshBasicMaterial({color: 0x624A2E});
+    var matBaling = new THREE.MeshPhongMaterial({color: 0x624A2E, shading:THREE.FlatShading});
     baling = new THREE.Mesh(geomBaling, matBaling);
     baling.position.x = 5;
 
     // Ekor
     var geomEkor = new THREE.BoxGeometry(20, 20, 5);
-    var matEkor = new THREE.MeshPhongMaterial({color: 0xA0522D});
+    var matEkor = new THREE.MeshPhongMaterial({color: 0xA0522D, shading:THREE.FlatShading});
     ekor = new THREE.Mesh(geomEkor, matEkor);
     ekor.position.x = -32;
     ekor.position.y = 25;
 
     this.propeller.add(baling);
     
+    body.castShadow = true;
+    mesin.castShadow = true;
+    sayap.castShadow = true;
+    this.propeller.castShadow = true;
+    baling.castShadow = true;
+    ekor.castShadow = true;
+
     this.mesh.add(body);
     this.mesh.add(mesin);
     this.mesh.add(sayap);
@@ -116,9 +124,10 @@ function createPlane() {
 function createGround(){
     var geometry = new THREE.CylinderGeometry(600, 600, 800, 30,10);
     geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-    var mat = new THREE.MeshBasicMaterial({
+    var mat = new THREE.MeshPhongMaterial({
         color: 0xED8E4A,
         opacity : 0.6,
+        shading:THREE.FlatShading
     });
     ground = new THREE.Mesh(geometry, mat);
     ground.receiveShadow = true;
@@ -153,7 +162,7 @@ function cloneCloud(){
 function Cloud(){
     this.mesh = new THREE.Object3D();
     var geom = new THREE.SphereGeometry(15,15,15);
-    var mat = new THREE.MeshBasicMaterial({
+    var mat = new THREE.MeshPhongMaterial({
         color: 0xF0F0F0,
     });
     
@@ -178,9 +187,29 @@ function createCloud(){
     scene.add(cloudy.mesh);
 }
 
+// Buat Light
+function createLight() {
+    light1 = new THREE.AmbientLight(0xdc8874, .5);
+
+    light2 = new THREE.DirectionalLight(0xffffff, .9);
+    light2.position.set(150, 500, 500);
+    light2.castShadow = true;
+    light2.shadow.camera.left = -400;
+    light2.shadow.camera.right = 400;
+    light2.shadow.camera.top = 400;
+    light2.shadow.camera.bottom = -400;
+    light2.shadow.camera.near = 1;
+    light2.shadow.camera.far = 1000;
+    light2.shadow.mapSize.width = 1024;
+    light2.shadow.mapSize.height = 1024;
+
+    scene.add(light1);
+    scene.add(light2);
+}
+
 // Animasi
 function loop(){
-    updatePlane();
+    animatePlane();
     renderer.render(scene, camera);
     // Animate Sky
     if(skyTime < 120)
@@ -194,7 +223,7 @@ function loop(){
         else
             skyIndex--;
 
-        background.material = new THREE.MeshBasicMaterial({color: skyColor[skyIndex]});
+        background.material = new THREE.MeshPhongMaterial({color: skyColor[skyIndex]});
         skyTime = 0;
     }
     // Animate Ground
@@ -213,15 +242,16 @@ function init() {
     createGround();
     createCloud();
     createPlane();
+    createLight();
     loop();
 }
 
-function updatePlane() {
-    var targetX = normalize(mouse.x,-.75,.75,-100, 100);
-    var targetY = normalize(mouse.y,-.75,.75,25, 175);
+function animatePlane() {
+    var targetX = normalize(mouse.x, -1, 1, -200, 200);
+    var targetY = normalize(mouse.y, -1, 1,  20, 200);
     Pesawat.mesh.position.x = targetX;
     Pesawat.mesh.position.y = targetY;
-    Pesawat.propeller.rotation.x += 0.3;
+    Pesawat.propeller.rotation.x += 0.25;
 }
 
 // Mengatur Kecepatan dan Tinggi Pesawat

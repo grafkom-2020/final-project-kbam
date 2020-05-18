@@ -2,8 +2,8 @@ var scene, camera, fov, ratio, near, far, renderer, container,
     width, height,
     background, ground, cloudy,
     light1, light2,
-    body, mesin, sayap, propeller, baling, ekor, Pesawat, 
-    mouse;
+    body, mesin, sayap, propeller, baling, ekor, pesawat,
+    mouse, powerUp;
 
 var skyIndex = 0, skyIncrease = 1, skyTime = 0;
 var skyColor = [
@@ -58,7 +58,7 @@ function createBackground(){
 }
 
 // Buat pesawat 
-function pesawat(){
+function Pesawat(){
     this.mesh = new THREE.Object3D();
 
     // Body
@@ -115,9 +115,9 @@ function pesawat(){
 }
 
 function createPlane() {
-    Pesawat = new pesawat();
-    Pesawat.mesh.scale.set(.25, .25, .25);
-    scene.add(Pesawat.mesh);
+    pesawat = new Pesawat();
+    pesawat.mesh.scale.set(.25, .25, .25);
+    scene.add(pesawat.mesh);
 }
 
 // Buat Ground
@@ -187,6 +187,29 @@ function createCloud(){
     scene.add(cloudy.mesh);
 }
 
+// Fungsi Membuat Power Up
+function PowerUp(a, b, r, deg, degIncrement){
+    this.a = a;
+    this.b = b;
+    this.r = r;
+    this.deg = deg;
+    this.degIncrement = degIncrement;
+
+    var geometry = new THREE.SphereGeometry(5, 15, 15);
+    var material = new THREE.MeshPhongMaterial({
+        color: 0x33F20B,
+        opacity : 0.6,
+        shading:THREE.FlatShading
+    });
+
+    this.mesh = new THREE.Mesh(geometry, material);
+}
+
+function createPowerUp(){
+    powerUp = new PowerUp(0, -100, 250, 330, 0.65);
+    scene.add(powerUp.mesh);
+}
+
 // Buat Light
 function createLight() {
     light1 = new THREE.AmbientLight(0xdc8874, .5);
@@ -207,8 +230,17 @@ function createLight() {
     scene.add(light2);
 }
 
+var life = 120;
+
 // Animasi
 function loop(){
+    
+    // life--;
+    
+    // if(life < 1)
+    //     location.replace("file:///C:/Users/user/Documents/GrafKomDoc/FP/TheAviator/part1.html");
+        
+
     animatePlane();
     renderer.render(scene, camera);
     // Animate Sky
@@ -230,8 +262,41 @@ function loop(){
     ground.rotation.z += 0.005;
     // Animate Cloud
     cloudy.mesh.rotation.z += .01;
-      
+
+    rotatePowerUp();
+
     requestAnimationFrame(loop);
+}
+
+// Fungsi Merotasi PowerUp dan Mengecek collision dengan pesawat
+function rotatePowerUp(){
+    var a = powerUp.a;
+    var b = powerUp.b;
+    var r = powerUp.r;
+
+    powerUp.deg += powerUp.degIncrement;
+    var deg = powerUp.deg;
+
+    if(deg > 360.0)
+        powerUp.deg -= 360;
+    
+    var angle = Math.PI * deg / 180;
+
+    var x = powerUp.mesh.position.x - pesawat.mesh.position.x;
+    var y = powerUp.mesh.position.y - pesawat.mesh.position.y;
+
+    x *= x;
+    y *= y;
+
+    var dist = x + y;
+
+    if(dist < 500){
+        angle += Math.PI;
+        powerUp.deg = Math.random()*50 + 200;
+    }
+
+    powerUp.mesh.position.x = a + Math.cos(angle) * r;
+    powerUp.mesh.position.y = b + Math.sin(angle) * r;
 }
 
 // Initialisasi grafik
@@ -242,6 +307,7 @@ function init() {
     createGround();
     createCloud();
     createPlane();
+    createPowerUp();
     createLight();
     loop();
 }
@@ -249,9 +315,9 @@ function init() {
 function animatePlane() {
     var targetX = normalize(mouse.x, -1, 1, -200, 200);
     var targetY = normalize(mouse.y, -1, 1,  20, 200);
-    Pesawat.mesh.position.x = targetX;
-    Pesawat.mesh.position.y = targetY;
-    Pesawat.propeller.rotation.x += 0.25;
+    pesawat.mesh.position.x = targetX;
+    pesawat.mesh.position.y = targetY;
+    pesawat.propeller.rotation.x += 0.25;
 }
 
 // Mengatur Kecepatan dan Tinggi Pesawat

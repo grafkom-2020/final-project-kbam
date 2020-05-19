@@ -1,62 +1,144 @@
+body {
+    background: brown;
+}
+
 button {
-  display: inline-block;
-  padding: 12px 30px;
-  font-size: 24px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  outline: none;
-  color: #fff;
-  background-color: #347699;
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 5px #224C63;
+    display: inline-block;
+    padding: 12px 30px;
+    font-size: 24px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: #00263b;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px #224C63;
 }
 
 .button:hover {
-  background-color: #265772;
+    background-color: #265772;
 }
 
 .mainpage {
-  position:absolute;
-  font-weight:bold;
-  align-items: center;
-  text-align:center;
-  color:rebeccapurple;
-  left: 45%;
-  top: 50%;
+    position:absolute;
+    font-weight:bold;
+    align-items: center;
+    text-align:center;
+    left: 45%;
+    top: 55%;
 }
 
-.bg-main{
-    position: absolute;
-    background-color: dodgerblue;
-    width:100%;
-    height: 100%;
-    overflow: hidden;
+#text {
+    width: 750px;
+	height: 580px;
+	margin: auto;
+	margin-top: 20px;
+    border-radius: 40px;
 }
 
-.header {
-  position: absolute;
-  text-shadow: 0 0 3px;
-  top: 30%;
-  width: 100%;
-  text-align: center;
-  pointer-events: none;
-
+.traveller {
+    width:750px;
+	height: auto;
+	padding-top: 180px;
+    background: none;
 }
 
-.header h1 {
-  font-family: 'Playfair Display';
-  font-size: 4.5em;
-  line-height: 1;
-  margin: 0;
-  letter-spacing: -0.025em;
-  color: #cd071e;
+.traveller p {
+	font-family: 'Black Ops One', cursive;
+    margin-top: 0px;
+	margin-bottom: 0px;
+	font-size: 130px;
+	line-height: 120px;
+	text-align: center;
+	text-shadow: 5px 5px black;
+    color: #ffffff;
 }
 
-.header h2 {
-  margin: 0.25em;
-  letter-spacing: 0.5em;
-  text-transform: uppercase;
-  color: #009e60;
+.tutor {
+    width: 750px;
+	height: auto;
+    padding-top: 40px;
+}
+
+.tutor p {
+	font-family: corbel;
+    margin-top: -30px;
+	margin-bottom: 0px;
+	text-align: center;
+	font-size: 40px;
+	font-weight: bold;
+	color: #ffffff;
+    text-shadow: 2.5px 2.5px black;
+}
+.gameover {
+    width:750px;
+	height: auto;
+	padding-top: 60px;
+    background: none;
+}
+
+.gameover p {
+	font-family: 'Black Ops One', cursive;
+    margin-top: 0px;
+	margin-bottom: 0px;
+	font-size: 160px;
+	line-height: 120px;
+	text-align: center;
+	text-shadow: 5px 5px black;
+    color: #ffffff;
+}
+
+.continue {
+    width: 750px;
+	height: auto;
+    padding-top: 40px;
+}
+
+.continue p {
+	font-family: corbel;
+    margin-top: 0px;
+	margin-bottom: 0px;
+	text-align: center;
+	font-size: 40px;
+	font-weight: bold;
+	color: #ffffff;
+    text-shadow: 2.5px 2.5px black;
+}
+
+.option {
+    width: 550px;
+	height: auto;
+	padding-top: 50px;
+    margin: auto;
+}
+
+.yes a {
+	font-family: corbel;
+    text-align: center;
+	font-size: 30px;
+	font-weight: bold;
+	color: #ffffff;
+	text-decoration: none;
+	text-shadow: 2.5px 2.5px #000000;
+	padding: 25px 100px 25px 100px;
+	border-radius: 20px;
+	background: #006400;
+	margin-right: 30px;
+    float: left;
+}
+
+.no a {
+	font-family: corbel;
+    text-align: center;
+	font-size: 30px;
+	font-weight: bold;
+	color: #ffffff;
+	text-decoration: none;
+	text-shadow: 1.5px 1.5px red;
+	padding: 25px 100px 25px 100px;
+	border-radius: 20px;
+	background: black;
+    float: left;
 }

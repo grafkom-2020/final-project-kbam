@@ -313,7 +313,7 @@ function updateEnergyBar() {
     if (energyBar.life > 0)
         energyBar.life--;
     else
-        location.replace("menu.html");
+        location.replace("end.html");
 
     energyBar.mesh.scale.set(energyBar.life / energyBar.ratio, 1, 1);
 }

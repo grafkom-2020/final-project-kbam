@@ -3,7 +3,8 @@ var scene, camera, fov, ratio, near, far, renderer, container,
     background, ground, cloudy,
     light1, light2,
     body, mesin, sayap, propeller, baling, ekor, pesawat,
-    mouse, powerUp = [], energyBar, random, speed;
+    mouse, powerUp = [], energyBar, random, speed,
+    score, scoreText;
 
 var skyIndex = 0, skyIncrease = 1, skyTime = 0;
 var skyColor = [
@@ -140,7 +141,7 @@ function createGround(){
 // Buat Awan
 function cloneCloud(){
     this.mesh = new THREE.Object3D();
-    this.nClouds = 40; 
+    this.nClouds = 30; 
     this.clouds = [];
 
     // Buat angle awan
@@ -206,8 +207,8 @@ function Speed(){
 }
 
 function updateSpeed(){
-    if(speed.gameSpeed < 4.0)
-        speed.gameSpeed += .0001;
+    if(speed.gameSpeed < 3.0)
+        speed.gameSpeed += .0005;
 }
 
 function initNumberClass(){
@@ -216,26 +217,44 @@ function initNumberClass(){
 }
 
 // Fungsi Membuat Power Up
-function PowerUp(){
+function PowerUp(id){
+    this.id = id;
     this.b = nextVal()%101 - 150;
     this.r = 250;
     this.angle = nextVal()%31 + 270;
     this.rotateSpeed = (nextVal()%10 + 1) / 10;
     this.dist = 0;
 
-    var geometry = new THREE.SphereGeometry(5, 15, 15);
-    var material = new THREE.MeshPhongMaterial({
-        color: 0x33F20B,
-        opacity : 0.6,
+    var geometry, material;
+    if (this.id == 1) {
+        geometry = new THREE.TetrahedronGeometry(10, 0);
+        material = new THREE.MeshPhongMaterial({
+            color: 0x33F20B,
+            opacity : 0.6,
+            shading:THREE.FlatShading
+        });
+        this.mesh = new THREE.Mesh(geometry, material);
+    }
+    else if (this.id == 2) {
+        geometry = new THREE.SphereGeometry(15, 4, 4);
+        material = new THREE.MeshPhongMaterial({
+        color: 0xB50B0B,
+        opacity : 1,
         shading:THREE.FlatShading
-    });
-
-    this.mesh = new THREE.Mesh(geometry, material);
+        });
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.castShadow = true;
+    }
 }
 
 function createPowerUp(){
     for(var i=0; i<4; i++){
-        var mesh = new PowerUp();
+        var mesh = new PowerUp(1);
+        powerUp.push(mesh);
+        scene.add(powerUp[i].mesh);
+    }
+    for(var i=4; i<10; i++){
+        var mesh = new PowerUp(2);
         powerUp.push(mesh);
         scene.add(powerUp[i].mesh);
     }
@@ -279,11 +298,18 @@ function createLight() {
     scene.add(light2);
 }
 
-function loop(){
+function loop() {
     updateEnergyBar();
+    if (energyBar.life <= 0)
+        return;
     updateSpeed();
     animatePlane();
     renderer.render(scene, camera);
+
+    // Score
+    scoreText.innerHTML = score;
+    score++;
+
     // Animate Sky
     if(skyTime < 120)
       skyTime++;
@@ -310,10 +336,13 @@ function loop(){
 }
 
 function updateEnergyBar() {
-    if (energyBar.life > 0)
+    if (energyBar.life > 1)
         energyBar.life--;
-    else
+    else {
+        msg = score.toString();
+        localStorage.setItem("finalScore", msg);
         location.replace("end.html");
+    }
 
     energyBar.mesh.scale.set(energyBar.life / energyBar.ratio, 1, 1);
 }
@@ -343,7 +372,11 @@ function rotatePowerUp() {
             powerUp[i].angle = nextVal()%31 + 270;
             angle = powerUp[i].angle;
             powerUp[i].rotateSpeed = (nextVal()%8 + 3) / 10;
-            energyBar.life += 45;
+            if (powerUp[i].id == 1)
+                energyBar.life += 40;
+            else if (powerUp[i].id == 2)
+                energyBar.life -= 90;
+        
             if(energyBar.life > 900)
                 energyBar.life = 900;
         }
@@ -356,6 +389,9 @@ function rotatePowerUp() {
 // Initialisasi grafik
 function init() {
     document.addEventListener('mousemove', handleMouseMove, false);
+    score = 0;
+    scoreText = document.getElementById("score");
+
 
     createScene();
     createBackground();

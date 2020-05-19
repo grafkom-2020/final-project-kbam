@@ -26,7 +26,7 @@ button {
     font-weight:bold;
     align-items: center;
     text-align:center;
-    left: 45%;
+    left: 47%;
     top: 55%;
 }
 
@@ -143,4 +143,16 @@ button {
 	background: #202020;
 	float: left;
 	box-shadow: 0 8px #000000;
+}
+
+.score {
+	margin: 0;
+	position: absolute;
+	display: inline-block;
+	top: 30px;
+	left: 50px;
+	font-size: 50px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-style: oblique;
+	font-weight: bold;
 }

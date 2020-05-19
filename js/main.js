@@ -3,7 +3,8 @@ var scene, camera, fov, ratio, near, far, renderer, container,
     background, ground, cloudy,
     light1, light2,
     body, mesin, sayap, propeller, baling, ekor, pesawat,
-    mouse, powerUp;
+    mouse, powerUp,
+    energyBar, life = 120;
 
 var skyIndex = 0, skyIncrease = 1, skyTime = 0;
 var skyColor = [
@@ -57,7 +58,25 @@ function createBackground(){
     scene.add(background);
 }
 
-// Buat pesawat 
+// Fungsi Membuat Energy Bar dari Pesawat
+function EnergyBar() {
+
+    this.life = 600;
+
+    var geometry = new THREE.BoxGeometry(30, 3, 3);
+    var material = new THREE.MeshBasicMaterial({color: 0xFF0000});
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.position.y = 200;
+    this.mesh.scale.set(life / 60, 1, 1);
+}
+
+// Buat Energy Bar
+function createEnergyBar() {
+    energyBar = new EnergyBar();
+    scene.add(energyBar.mesh);
+}
+
+// Fungsi Membentuk Pesawat
 function Pesawat(){
     this.mesh = new THREE.Object3D();
 
@@ -114,6 +133,7 @@ function Pesawat(){
     this.mesh.add(ekor);
 }
 
+// Buat Pesawat
 function createPlane() {
     pesawat = new Pesawat();
     pesawat.mesh.scale.set(.25, .25, .25);
@@ -230,8 +250,6 @@ function createLight() {
     scene.add(light2);
 }
 
-var life = 120;
-
 // Animasi
 function loop(){
     
@@ -240,7 +258,7 @@ function loop(){
     // if(life < 1)
     //     location.replace("file:///C:/Users/user/Documents/GrafKomDoc/FP/TheAviator/part1.html");
         
-
+    updateEnergyBar();
     animatePlane();
     renderer.render(scene, camera);
     // Animate Sky
@@ -268,8 +286,16 @@ function loop(){
     requestAnimationFrame(loop);
 }
 
+function updateEnergyBar() {
+
+    if (energyBar.life > 0) energyBar.life--;
+    else location.replace("file:///C:/Users/AMELIA/Downloads/final-project-kbam-master/final-project-kbam-master/menu.html");
+
+    energyBar.mesh.scale.set(energyBar.life / 120, 1, 1);
+}
+
 // Fungsi Merotasi PowerUp dan Mengecek collision dengan pesawat
-function rotatePowerUp(){
+function rotatePowerUp() {
     var a = powerUp.a;
     var b = powerUp.b;
     var r = powerUp.r;
@@ -293,6 +319,8 @@ function rotatePowerUp(){
     if(dist < 500){
         angle += Math.PI;
         powerUp.deg = Math.random()*50 + 200;
+
+        energyBar.life += 60;
     }
 
     powerUp.mesh.position.x = a + Math.cos(angle) * r;
@@ -302,6 +330,7 @@ function rotatePowerUp(){
 // Initialisasi grafik
 function init() {
     document.addEventListener('mousemove', handleMouseMove, false);
+
     createScene();
     createBackground();
     createGround();
@@ -309,6 +338,7 @@ function init() {
     createPlane();
     createPowerUp();
     createLight();
+    createEnergyBar();
     loop();
 }
 
@@ -322,9 +352,8 @@ function animatePlane() {
 
 // Mengatur Kecepatan dan Tinggi Pesawat
 function normalize(v, vmin, vmax, tmin, tmax) {
-    var nv = Math.max(Math.min(v, vmax), vmin);
     var dv = vmax-vmin;
-    var pc = (nv-vmin) / dv;
+    var pc = (v-vmin) / dv;
     var dt = tmax-tmin;
     var tv = tmin + (pc*dt);
     return tv;

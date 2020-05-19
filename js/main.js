@@ -3,8 +3,7 @@ var scene, camera, fov, ratio, near, far, renderer, container,
     background, ground, cloudy,
     light1, light2,
     body, mesin, sayap, propeller, baling, ekor, pesawat,
-    mouse, powerUp,
-    energyBar, life = 120;
+    mouse, powerUp = [], energyBar, random, speed;
 
 var skyIndex = 0, skyIncrease = 1, skyTime = 0;
 var skyColor = [
@@ -56,24 +55,6 @@ function createBackground(){
     
     background.position.z = -600;
     scene.add(background);
-}
-
-// Fungsi Membuat Energy Bar dari Pesawat
-function EnergyBar() {
-
-    this.life = 600;
-
-    var geometry = new THREE.BoxGeometry(30, 3, 3);
-    var material = new THREE.MeshBasicMaterial({color: 0xFF0000});
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.position.y = 200;
-    this.mesh.scale.set(life / 60, 1, 1);
-}
-
-// Buat Energy Bar
-function createEnergyBar() {
-    energyBar = new EnergyBar();
-    scene.add(energyBar.mesh);
 }
 
 // Fungsi Membentuk Pesawat
@@ -207,13 +188,40 @@ function createCloud(){
     scene.add(cloudy.mesh);
 }
 
+function Random(){
+    this.randVal = 0;
+    this.randOffset = new Date().getTime() % 3651 + 1;
+    this.modular = 31627;
+}
+
+function nextVal(){
+    random.randVal += random.randOffset;
+    random.randVal *= random.randOffset;
+    random.randVal %= random.modular;
+    return random.randVal;
+}
+
+function Speed(){
+    this.gameSpeed = 1.0;
+}
+
+function updateSpeed(){
+    if(speed.gameSpeed < 4.0)
+        speed.gameSpeed += .0001;
+}
+
+function initNumberClass(){
+    random = new Random();
+    speed = new Speed();
+}
+
 // Fungsi Membuat Power Up
-function PowerUp(a, b, r, deg, degIncrement){
-    this.a = a;
-    this.b = b;
-    this.r = r;
-    this.deg = deg;
-    this.degIncrement = degIncrement;
+function PowerUp(){
+    this.b = nextVal()%101 - 150;
+    this.r = 250;
+    this.angle = nextVal()%31 + 270;
+    this.rotateSpeed = (nextVal()%10 + 1) / 10;
+    this.dist = 0;
 
     var geometry = new THREE.SphereGeometry(5, 15, 15);
     var material = new THREE.MeshPhongMaterial({
@@ -226,8 +234,29 @@ function PowerUp(a, b, r, deg, degIncrement){
 }
 
 function createPowerUp(){
-    powerUp = new PowerUp(0, -100, 250, 330, 0.65);
-    scene.add(powerUp.mesh);
+    for(var i=0; i<4; i++){
+        var mesh = new PowerUp();
+        powerUp.push(mesh);
+        scene.add(powerUp[i].mesh);
+    }
+}
+
+// Fungsi Membuat Energy Bar dari Pesawat
+function EnergyBar() {
+    this.life = 900;
+    this.ratio = this.life / 10;
+    var geometry = new THREE.BoxGeometry(30, 3, 3);
+    var material = new THREE.MeshBasicMaterial({color: 0xFF0000});
+
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.position.y = 200;
+    this.mesh.scale.set(this.life / this.ratio, 1, 1);
+}
+
+// Buat Energy Bar
+function createEnergyBar() {
+    energyBar = new EnergyBar();
+    scene.add(energyBar.mesh);
 }
 
 // Buat Light
@@ -250,15 +279,9 @@ function createLight() {
     scene.add(light2);
 }
 
-// Animasi
 function loop(){
-    
-    // life--;
-    
-    // if(life < 1)
-    //     location.replace("file:///C:/Users/user/Documents/GrafKomDoc/FP/TheAviator/part1.html");
-        
     updateEnergyBar();
+    updateSpeed();
     animatePlane();
     renderer.render(scene, camera);
     // Animate Sky
@@ -277,9 +300,9 @@ function loop(){
         skyTime = 0;
     }
     // Animate Ground
-    ground.rotation.z += 0.005;
+    ground.rotation.z += 0.005 * speed.gameSpeed;
     // Animate Cloud
-    cloudy.mesh.rotation.z += .01;
+    cloudy.mesh.rotation.z += .01 * speed.gameSpeed;
 
     rotatePowerUp();
 
@@ -287,44 +310,47 @@ function loop(){
 }
 
 function updateEnergyBar() {
+    if (energyBar.life > 0)
+        energyBar.life--;
+    else
+        location.replace("menu.html");
 
-    if (energyBar.life > 0) energyBar.life--;
-    else location.replace("file:///C:/Users/AMELIA/Downloads/final-project-kbam-master/final-project-kbam-master/menu.html");
-
-    energyBar.mesh.scale.set(energyBar.life / 120, 1, 1);
+    energyBar.mesh.scale.set(energyBar.life / energyBar.ratio, 1, 1);
 }
 
 // Fungsi Merotasi PowerUp dan Mengecek collision dengan pesawat
 function rotatePowerUp() {
-    var a = powerUp.a;
-    var b = powerUp.b;
-    var r = powerUp.r;
-
-    powerUp.deg += powerUp.degIncrement;
-    var deg = powerUp.deg;
-
-    if(deg > 360.0)
-        powerUp.deg -= 360;
+    for(var i=0; i<powerUp.length; i++){
+        var b = powerUp[i].b;
+        var r = powerUp[i].r;
     
-    var angle = Math.PI * deg / 180;
-
-    var x = powerUp.mesh.position.x - pesawat.mesh.position.x;
-    var y = powerUp.mesh.position.y - pesawat.mesh.position.y;
-
-    x *= x;
-    y *= y;
-
-    var dist = x + y;
-
-    if(dist < 500){
-        angle += Math.PI;
-        powerUp.deg = Math.random()*50 + 200;
-
-        energyBar.life += 60;
+        powerUp[i].angle += powerUp[i].rotateSpeed * speed.gameSpeed;
+        var angle = powerUp[i].angle;
+    
+        if(angle > 360.0)
+            powerUp[i].angle -= 360;
+    
+        var x = powerUp[i].mesh.position.x - pesawat.mesh.position.x;
+        var y = powerUp[i].mesh.position.y - pesawat.mesh.position.y;
+    
+        x *= x;
+        y *= y;
+    
+        powerUp[i].dist = x + y;
+    
+        if(powerUp[i].dist < 500){
+            powerUp[i].b = nextVal()%101 - 150;
+            powerUp[i].angle = nextVal()%31 + 270;
+            angle = powerUp[i].angle;
+            powerUp[i].rotateSpeed = (nextVal()%8 + 3) / 10;
+            energyBar.life += 45;
+            if(energyBar.life > 900)
+                energyBar.life = 900;
+        }
+    
+        powerUp[i].mesh.position.x = Math.cos(Math.PI * angle / 180) * r;
+        powerUp[i].mesh.position.y = b + Math.sin(Math.PI * angle / 180) * r;
     }
-
-    powerUp.mesh.position.x = a + Math.cos(angle) * r;
-    powerUp.mesh.position.y = b + Math.sin(angle) * r;
 }
 
 // Initialisasi grafik
@@ -336,9 +362,10 @@ function init() {
     createGround();
     createCloud();
     createPlane();
+    initNumberClass();
     createPowerUp();
-    createLight();
     createEnergyBar();
+    createLight();
     loop();
 }
 
